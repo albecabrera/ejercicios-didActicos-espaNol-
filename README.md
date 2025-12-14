@@ -156,6 +156,91 @@ Requisitos:
    - topics: ['tema1', 'tema2']
 ```
 
+### Flujo de Trabajo Visual
+
+```mermaid
+flowchart TD
+    Start([Inicio]) --> Idea[💡 Idea para Nuevo Ejercicio]
+    Idea --> Prompt1[📝 Paso 1: Planificar con Claude]
+    Prompt1 --> Claude1{Claude analiza<br/>ejercicios existentes}
+    Claude1 --> Plan[📋 Plan del ejercicio generado]
+
+    Plan --> Prompt2[📝 Paso 2: Crear archivo HTML]
+    Prompt2 --> Claude2{Claude genera<br/>el ejercicio}
+    Claude2 --> HTML[📄 ejercicios/nuevo_ejercicio.html]
+
+    HTML --> Prompt3[📝 Paso 3: Actualizar índice]
+    Prompt3 --> Claude3{Claude actualiza<br/>index.html}
+    Claude3 --> Index[🏠 index.html actualizado]
+
+    Index --> Test[🧪 Paso 4: Probar en navegador]
+    Test --> Works{¿Funciona<br/>correctamente?}
+
+    Works -->|No| Fix[🔧 Ajustes y correcciones]
+    Fix --> Test
+
+    Works -->|Sí| Commit[📦 Commit de cambios]
+    Commit --> Push[⬆️ Push a GitHub]
+    Push --> Deploy[🚀 Deploy automático a GitHub Pages]
+    Deploy --> QR[📱 Códigos QR generados]
+    QR --> Share[✅ Compartir con estudiantes]
+    Share --> End([Fin])
+
+    style Start fill:#667eea,stroke:#333,stroke-width:2px,color:#fff
+    style End fill:#667eea,stroke:#333,stroke-width:2px,color:#fff
+    style Claude1 fill:#f093fb,stroke:#333,stroke-width:2px
+    style Claude2 fill:#f093fb,stroke:#333,stroke-width:2px
+    style Claude3 fill:#f093fb,stroke:#333,stroke-width:2px
+    style Share fill:#84fab0,stroke:#333,stroke-width:2px
+```
+
+### Arquitectura del Sistema
+
+```mermaid
+graph TB
+    subgraph "📱 Usuario Final"
+        Browser[Navegador Web]
+    end
+
+    subgraph "🌐 GitHub Pages"
+        Index[index.html<br/>Catálogo de Ejercicios]
+        Ex1[ejercicios/*.html<br/>Ejercicios Individuales]
+    end
+
+    subgraph "🎨 Ejercicio Individual"
+        HTML[HTML<br/>Estructura]
+        CSS[CSS<br/>Estilos & Animaciones]
+        JS[JavaScript<br/>Lógica del Juego]
+        Speech[Web Speech API<br/>Pronunciación]
+    end
+
+    subgraph "🔧 Desarrollo con Claude"
+        Dev[Desarrollador]
+        Claude[Claude Code]
+        Git[Git Repository]
+    end
+
+    Browser -->|Visita| Index
+    Index -->|Selecciona ejercicio| Ex1
+    Ex1 --> HTML
+    Ex1 --> CSS
+    Ex1 --> JS
+    JS --> Speech
+
+    Dev -->|Prompt| Claude
+    Claude -->|Genera código| Git
+    Git -->|Push| Index
+    Git -->|Push| Ex1
+
+    Index -->|Genera| QR[Códigos QR]
+    QR -->|Escanear| Browser
+
+    style Browser fill:#667eea,stroke:#333,stroke-width:2px,color:#fff
+    style Index fill:#f093fb,stroke:#333,stroke-width:2px,color:#fff
+    style Claude fill:#84fab0,stroke:#333,stroke-width:2px
+    style Speech fill:#ffd700,stroke:#333,stroke-width:2px
+```
+
 ## Deploy a GitHub Pages
 
 ### Configuración Inicial
