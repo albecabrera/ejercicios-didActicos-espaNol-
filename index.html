@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ejercicios Didácticos de Español</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            margin-bottom: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            color: #6c757d;
+        }
+
+        .exercises-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 25px;
+            margin-top: 30px;
+        }
+
+        .exercise-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: transform 0.3s, box-shadow 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .exercise-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .exercise-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+        }
+
+        .exercise-icon {
+            font-size: 3em;
+            margin-bottom: 15px;
+        }
+
+        .exercise-title {
+            font-size: 1.5em;
+            color: #667eea;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .exercise-description {
+            color: #6c757d;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            font-size: 1.05em;
+        }
+
+        .exercise-meta {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            background: #f8f9fa;
+            color: #667eea;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+
+        .exercise-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            flex: 1;
+            min-width: 120px;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 25px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(245, 87, 108, 0.4);
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(245, 87, 108, 0.6);
+        }
+
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            animation: fadeIn 0.3s;
+        }
+
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            max-width: 500px;
+            width: 90%;
+            position: relative;
+            animation: slideIn 0.3s;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .modal-header h2 {
+            color: #667eea;
+            font-size: 1.8em;
+            margin-bottom: 10px;
+        }
+
+        .modal-header p {
+            color: #6c757d;
+            font-size: 1em;
+        }
+
+        .close {
+            position: absolute;
+            right: 20px;
+            top: 20px;
+            font-size: 28px;
+            font-weight: bold;
+            color: #999;
+            cursor: pointer;
+            transition: color 0.3s;
+            width: 35px;
+            height: 35px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+        }
+
+        .close:hover {
+            color: #333;
+            background: #f8f9fa;
+        }
+
+        .qr-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 15px;
+            margin-bottom: 20px;
+        }
+
+        #qrcode {
+            margin: 20px 0;
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+        }
+
+        .url-display {
+            background: white;
+            padding: 12px 20px;
+            border-radius: 10px;
+            width: 100%;
+            word-break: break-all;
+            text-align: center;
+            font-size: 0.9em;
+            color: #667eea;
+            font-weight: 600;
+            border: 2px solid #e9ecef;
+            margin-top: 15px;
+        }
+
+        .copy-btn {
+            margin-top: 15px;
+            width: 100%;
+        }
+
+        .footer {
+            text-align: center;
+            color: white;
+            margin-top: 50px;
+            padding: 20px;
+            font-size: 0.95em;
+        }
+
+        .footer a {
+            color: white;
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            .exercises-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .modal-content {
+                padding: 30px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📚 Ejercicios Didácticos de Español</h1>
+            <p>Ejercicios interactivos para aprender español de forma divertida</p>
+        </div>
+
+        <div class="exercises-grid" id="exercisesList">
+            <!-- Los ejercicios se cargarán dinámicamente -->
+        </div>
+
+        <div class="footer">
+            <p>Ejercicios creados para el aprendizaje del español</p>
+            <p>Desarrollado con 💙 para educación</p>
+        </div>
+    </div>
+
+    <!-- Modal para código QR -->
+    <div id="qrModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <div class="modal-header">
+                <h2>🔗 Compartir Ejercicio</h2>
+                <p id="modalExerciseName"></p>
+            </div>
+            <div class="qr-container">
+                <p style="margin-bottom: 10px; color: #6c757d; font-weight: 600;">Escanea el código QR:</p>
+                <div id="qrcode"></div>
+                <div class="url-display" id="exerciseUrl"></div>
+            </div>
+            <button class="btn btn-primary copy-btn" onclick="copyUrl()">
+                📋 Copiar enlace
+            </button>
+        </div>
+    </div>
+
+    <!-- Librería para generar códigos QR -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+    <script>
+        // CONFIGURACIÓN: Actualiza este valor con tu usuario de GitHub
+        const GITHUB_USERNAME = 'acabrera'; // Cambia esto por tu usuario de GitHub
+        const REPO_NAME = 'ejercicios_didacticos';
+        const BASE_URL = `https://${GITHUB_USERNAME}.github.io/${REPO_NAME}`;
+
+        // Base de datos de ejercicios
+        const exercises = [
+            {
+                id: 'mi-barrio',
+                icon: '🏙️',
+                title: 'Madrid Abenteuer - Mi Barrio',
+                description: 'Aprende vocabulario español a través de un emocionante viaje por Madrid. Descubre lugares emblemáticos, aprende direcciones, comida típica y mucho más en 10 niveles interactivos.',
+                file: 'ejercicios/mi_barrio_spiel.html',
+                level: 'A1-A2',
+                topics: ['Vocabulario', 'Direcciones', 'Ciudad'],
+                language: 'DE → ES' // Interfaz en alemán, enseña español
+            }
+            // Aquí se agregarán más ejercicios en el futuro
+        ];
+
+        let currentQR = null;
+
+        // Renderizar ejercicios
+        function renderExercises() {
+            const container = document.getElementById('exercisesList');
+
+            exercises.forEach(exercise => {
+                const card = document.createElement('div');
+                card.className = 'exercise-card';
+
+                const badges = `
+                    <span class="badge">📊 ${exercise.level}</span>
+                    <span class="badge">🌐 ${exercise.language}</span>
+                `;
+
+                const topicBadges = exercise.topics.map(topic =>
+                    `<span class="badge">🏷️ ${topic}</span>`
+                ).join('');
+
+                card.innerHTML = `
+                    <div class="exercise-icon">${exercise.icon}</div>
+                    <h2 class="exercise-title">${exercise.title}</h2>
+                    <p class="exercise-description">${exercise.description}</p>
+                    <div class="exercise-meta">
+                        ${badges}
+                        ${topicBadges}
+                    </div>
+                    <div class="exercise-actions">
+                        <a href="${exercise.file}" class="btn btn-primary" target="_blank">
+                            ▶️ Iniciar
+                        </a>
+                        <button class="btn btn-secondary" onclick="showQR('${exercise.id}')">
+                            📱 Compartir
+                        </button>
+                    </div>
+                `;
+
+                container.appendChild(card);
+            });
+        }
+
+        // Mostrar modal con código QR
+        function showQR(exerciseId) {
+            const exercise = exercises.find(ex => ex.id === exerciseId);
+            if (!exercise) return;
+
+            const modal = document.getElementById('qrModal');
+            const qrContainer = document.getElementById('qrcode');
+            const urlDisplay = document.getElementById('exerciseUrl');
+            const modalName = document.getElementById('modalExerciseName');
+
+            // URL completa del ejercicio
+            const exerciseUrl = `${BASE_URL}/${exercise.file}`;
+
+            // Actualizar nombre del ejercicio en el modal
+            modalName.textContent = exercise.title;
+
+            // Limpiar QR anterior
+            qrContainer.innerHTML = '';
+
+            // Generar nuevo código QR
+            currentQR = new QRCode(qrContainer, {
+                text: exerciseUrl,
+                width: 200,
+                height: 200,
+                colorDark: "#667eea",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.H
+            });
+
+            // Mostrar URL
+            urlDisplay.textContent = exerciseUrl;
+            urlDisplay.dataset.url = exerciseUrl;
+
+            // Mostrar modal
+            modal.classList.add('show');
+        }
+
+        // Cerrar modal
+        function closeModal() {
+            const modal = document.getElementById('qrModal');
+            modal.classList.remove('show');
+        }
+
+        // Copiar URL al portapapeles
+        function copyUrl() {
+            const urlDisplay = document.getElementById('exerciseUrl');
+            const url = urlDisplay.dataset.url;
+
+            navigator.clipboard.writeText(url).then(() => {
+                const btn = event.target;
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '✅ ¡Copiado!';
+                btn.style.background = 'linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%)';
+
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                    btn.style.background = '';
+                }, 2000);
+            }).catch(err => {
+                alert('Error al copiar: ' + err);
+            });
+        }
+
+        // Cerrar modal al hacer clic fuera
+        window.onclick = function(event) {
+            const modal = document.getElementById('qrModal');
+            if (event.target === modal) {
+                closeModal();
+            }
+        }
+
+        // Inicializar
+        document.addEventListener('DOMContentLoaded', () => {
+            renderExercises();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🏙️ Madrid Abenteuer - Mi Barrio</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            padding: 30px;
+            text-align: center;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.95;
+        }
+
+        .game-info {
+            display: flex;
+            justify-content: space-around;
+            padding: 20px;
+            background: #f8f9fa;
+            border-bottom: 3px solid #e9ecef;
+        }
+
+        .info-box {
+            text-align: center;
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            min-width: 120px;
+        }
+
+        .info-box .label {
+            font-size: 0.9em;
+            color: #6c757d;
+            margin-bottom: 5px;
+        }
+
+        .info-box .value {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .game-content {
+            padding: 30px;
+        }
+
+        .welcome-screen {
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .welcome-screen h2 {
+            color: #667eea;
+            font-size: 2em;
+            margin-bottom: 20px;
+        }
+
+        .welcome-screen p {
+            font-size: 1.1em;
+            line-height: 1.6;
+            margin-bottom: 15px;
+            color: #555;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.2em;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            margin: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .scenario {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            border-left: 5px solid #667eea;
+        }
+
+        .scenario h3 {
+            color: #667eea;
+            font-size: 1.5em;
+            margin-bottom: 15px;
+        }
+
+        .scenario-text {
+            font-size: 1.1em;
+            line-height: 1.8;
+            color: #555;
+            margin-bottom: 20px;
+        }
+
+        .question-box {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            border: 2px solid #e9ecef;
+        }
+
+        .question-box h4 {
+            color: #f5576c;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+
+        .options {
+            display: grid;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .option {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+            font-size: 1.05em;
+        }
+
+        .option:hover {
+            background: #e9ecef;
+            border-color: #667eea;
+            transform: translateX(5px);
+        }
+
+        .option.correct {
+            background: #d4edda;
+            border-color: #28a745;
+            animation: correct 0.5s;
+        }
+
+        .option.incorrect {
+            background: #f8d7da;
+            border-color: #dc3545;
+            animation: shake 0.5s;
+        }
+
+        @keyframes correct {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        .feedback {
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 10px;
+            font-size: 1.1em;
+            display: none;
+        }
+
+        .feedback.show {
+            display: block;
+        }
+
+        .feedback.correct {
+            background: #d4edda;
+            color: #155724;
+            border: 2px solid #28a745;
+        }
+
+        .feedback.incorrect {
+            background: #f8d7da;
+            color: #721c24;
+            border: 2px solid #dc3545;
+        }
+
+        .vocab-card {
+            background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+            color: #1a1a1a;
+            font-weight: 500;
+        }
+
+        .progress-bar {
+            background: #e9ecef;
+            height: 25px;
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+
+        .progress-fill {
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            height: 100%;
+            transition: width 0.5s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .celebration {
+            text-align: center;
+            padding: 40px;
+        }
+
+        .celebration h2 {
+            font-size: 3em;
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+
+        .star {
+            font-size: 4em;
+            animation: rotate 2s infinite linear;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .stat-card .number {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-card .label {
+            color: #6c757d;
+            margin-top: 10px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .audio-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            margin-left: 10px;
+            font-size: 0.9em;
+        }
+
+        .audio-btn:hover {
+            background: #218838;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8em;
+            }
+            
+            .game-info {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .btn {
+                padding: 12px 30px;
+                font-size: 1em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏙️ Madrid Abenteuer</h1>
+            <p>Lerne Vokabeln und erkunde Madrid!</p>
+        </div>
+
+        <div class="game-info">
+            <div class="info-box">
+                <div class="label">Level</div>
+                <div class="value" id="level">1</div>
+            </div>
+            <div class="info-box">
+                <div class="label">Punkte</div>
+                <div class="value" id="score">0</div>
+            </div>
+            <div class="info-box">
+                <div class="label">Sterne ⭐</div>
+                <div class="value" id="stars">0</div>
+            </div>
+        </div>
+
+        <div class="game-content" id="gameContent">
+            <!-- Inhalt wird hier dynamisch eingefügt -->
+        </div>
+    </div>
+
+    <script>
+        const gameData = {
+            scenarios: [
+                {
+                    level: 1,
+                    title: "🎯 Am Kilometer 0",
+                    story: "Du stehst an der <strong>Puerta del Sol</strong>, dem berühmten Platz in Madrid. Hier ist der Kilometer 0 von Spanien! Ein Tourist fragt dich: 'Perdón, ¿dónde está el Teatro Real?'",
+                    vocab: ["la plaza - der Platz", "la puerta - die Tür, das Tor"],
+                    question: "Was bedeutet 'la plaza'?",
+                    options: ["der Platz", "die Straße", "das Theater", "der Palast"],
+                    correct: 0,
+                    audio: "la plaza"
+                },
+                {
+                    level: 2,
+                    title: "🎭 Wegbeschreibung zum Theater",
+                    story: "Du möchtest dem Touristen helfen. Du sagst: 'Tomas la calle de Arenal y <strong>vas todo recto</strong>.'",
+                    vocab: ["todo recto - geradeaus", "tomar - nehmen"],
+                    question: "Was bedeutet 'vas todo recto'?",
+                    options: ["du biegst ab", "du gehst geradeaus", "du kehrst um", "du läufst schnell"],
+                    correct: 1,
+                    audio: "todo recto"
+                },
+                {
+                    level: 3,
+                    title: "↩️ Abbiegen",
+                    story: "Nach 200 Metern kommt eine Kreuzung. Du erklärst: 'Después <strong>giras a la izquierda</strong>.'",
+                    vocab: ["girar - abbiegen", "a la izquierda - nach links", "a la derecha - nach rechts"],
+                    question: "Was bedeutet 'girar a la derecha'?",
+                    options: ["nach links abbiegen", "geradeaus gehen", "nach rechts abbiegen", "umkehren"],
+                    correct: 2,
+                    audio: "a la derecha"
+                },
+                {
+                    level: 4,
+                    title: "🏛️ Der Königspalast",
+                    story: "Der Tourist bedankt sich und fragt weiter: '¿Dónde está el <strong>Palacio Real</strong>?' Du antwortest: '<strong>No muy lejos</strong>! Delante del Teatro Real está la Plaza de Oriente. <strong>Cerca de allí</strong> está el palacio.'",
+                    vocab: ["el palacio - der Palast", "no muy lejos - nicht sehr weit", "cerca de - in der Nähe von"],
+                    question: "Was bedeutet 'No muy lejos'?",
+                    options: ["sehr weit", "nicht sehr weit", "ganz nah", "zu weit"],
+                    correct: 1,
+                    audio: "no muy lejos"
+                },
+                {
+                    level: 5,
+                    title: "🍽️ Hunger!",
+                    story: "Nach dem Spaziergang hast du Hunger. '¿<strong>Tienes hambre</strong>?' fragt dein Freund. 'Sí! Quiero comer <strong>bocadillos de calamares</strong>!'",
+                    vocab: ["¿Tienes hambre? - Hast du Hunger?", "los bocadillos de calamares - Tintenfisch-Sandwiches"],
+                    question: "Was sind 'churros con chocolate'?",
+                    options: ["Tintenfisch-Sandwiches", "Churros mit Schokolade", "Paella", "Tapas"],
+                    correct: 1,
+                    audio: "churros con chocolate"
+                },
+                {
+                    level: 6,
+                    title: "🏪 Einkaufen",
+                    story: "Nach dem Essen wollt ihr shoppen gehen. 'Hay muchas <strong>tiendas interesantes</strong> en este barrio', sagt dein Freund.",
+                    vocab: ["las tiendas - die Geschäfte", "interesante - interessant"],
+                    question: "Was bedeutet 'las tiendas'?",
+                    options: ["die Kinos", "die Geschäfte", "die Restaurants", "die Theater"],
+                    correct: 1,
+                    audio: "las tiendas"
+                },
+                {
+                    level: 7,
+                    title: "🚇 Mit der Metro",
+                    story: "Es ist spät. 'Tomamos <strong>el metro</strong>? ¿<strong>Adónde va</strong> la línea 2?' fragst du.",
+                    vocab: ["el metro - die U-Bahn", "la línea - die Linie", "¿Adónde va? - Wohin fährt es/sie?"],
+                    question: "Was bedeutet '¿Adónde va?'",
+                    options: ["Wann fährt es?", "Wohin fährt es?", "Wie viel kostet es?", "Wo ist es?"],
+                    correct: 1,
+                    audio: "adónde va"
+                },
+                {
+                    level: 8,
+                    title: "⚽ Fußballstadion",
+                    story: "In der Metro siehst du viele Fans. 'Van al <strong>estadio de fútbol</strong>', erklärt jemand. Real Madrid spielt heute!",
+                    vocab: ["el estadio de fútbol - das Fußballstadion"],
+                    question: "Was ist 'el estadio de fútbol'?",
+                    options: ["das Kino", "das Theater", "das Fußballstadion", "das Geschäft"],
+                    correct: 2,
+                    audio: "el estadio de fútbol"
+                },
+                {
+                    level: 9,
+                    title: "🏛️ Das historische Zentrum",
+                    story: "Du bist zurück im Hotel. 'El <strong>centro histórico</strong> de Madrid es muy bonito', denkst du. Morgen machst du einen <strong>paseo</strong> durch das <strong>barrio</strong>.",
+                    vocab: ["el centro histórico - die Altstadt", "el paseo - der Spaziergang", "el barrio - das Viertel"],
+                    question: "Was bedeutet 'el barrio'?",
+                    options: ["der Spaziergang", "das Viertel", "die Altstadt", "die Straße"],
+                    correct: 1,
+                    audio: "el barrio"
+                },
+                {
+                    level: 10,
+                    title: "🎬 Übung macht den Meister!",
+                    story: "Am letzten Tag: 'Aquí termina nuestro paseo por Madrid. <strong>Cruzamos</strong> la plaza y vamos a <strong>los cines</strong>.'",
+                    vocab: ["cruzar - überqueren", "los cines - die Kinos", "aquí termina - hier endet"],
+                    question: "Was bedeutet 'cruzar'?",
+                    options: ["überqueren", "abbiegen", "laufen", "warten"],
+                    correct: 0,
+                    audio: "cruzar"
+                }
+            ],
+            currentScenario: 0,
+            score: 0,
+            stars: 0,
+            answered: false
+        };
+
+        function speak(text) {
+            if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'es-ES';
+                utterance.rate = 0.8;
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
+        function showWelcome() {
+            const content = `
+                <div class="welcome-screen">
+                    <h2>Willkommen in Madrid! 🇪🇸</h2>
+                    <p>Begleite uns auf einem Abenteuer durch die spanische Hauptstadt!</p>
+                    <p>📚 Du lernst wichtige Vokabeln über:</p>
+                    <ul style="text-align: left; max-width: 500px; margin: 20px auto; font-size: 1.1em; line-height: 2;">
+                        <li>🗺️ Wegbeschreibungen und Sehenswürdigkeiten</li>
+                        <li>🍽️ Essen und Restaurants</li>
+                        <li>🏪 Einkaufen und Aktivitäten</li>
+                        <li>🚇 Transport und die Stadt</li>
+                    </ul>
+                    <p><strong>So funktioniert's:</strong></p>
+                    <p>Folge der Geschichte, lerne neue Wörter und beantworte Fragen.<br>
+                    Für jede richtige Antwort bekommst du Punkte und Sterne! ⭐</p>
+                    <button class="btn" onclick="startGame()">🚀 Abenteuer starten!</button>
+                </div>
+            `;
+            document.getElementById('gameContent').innerHTML = content;
+        }
+
+        function startGame() {
+            gameData.currentScenario = 0;
+            gameData.score = 0;
+            gameData.stars = 0;
+            updateDisplay();
+            showScenario();
+        }
+
+        function showScenario() {
+            const scenario = gameData.scenarios[gameData.currentScenario];
+            gameData.answered = false;
+            
+            const vocabCards = scenario.vocab.map(v => 
+                `<div class="vocab-card">📖 ${v}</div>`
+            ).join('');
+
+            const options = scenario.options.map((opt, idx) =>
+                `<div class="option" onclick="checkAnswer(${idx})">${opt}</div>`
+            ).join('');
+
+            const progress = ((gameData.currentScenario + 1) / gameData.scenarios.length * 100).toFixed(0);
+
+            const content = `
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: ${progress}%">${progress}%</div>
+                </div>
+                
+                <div class="scenario">
+                    <h3>${scenario.title}</h3>
+                    <div class="scenario-text">
+                        ${scenario.story}
+                    </div>
+                    
+                    <div style="margin: 20px 0;">
+                        <strong>🎯 Neue Vokabeln:</strong>
+                        ${vocabCards}
+                    </div>
+
+                    <div class="question-box">
+                        <h4>❓ ${scenario.question}</h4>
+                        <button class="audio-btn" onclick="speak('${scenario.audio}')">🔊 Anhören</button>
+                        <div class="options">
+                            ${options}
+                        </div>
+                        <div class="feedback" id="feedback"></div>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('gameContent').innerHTML = content;
+        }
+
+        function checkAnswer(selectedIdx) {
+            if (gameData.answered) return;
+            
+            gameData.answered = true;
+            const scenario = gameData.scenarios[gameData.currentScenario];
+            const options = document.querySelectorAll('.option');
+            const feedback = document.getElementById('feedback');
+            
+            if (selectedIdx === scenario.correct) {
+                options[selectedIdx].classList.add('correct');
+                gameData.score += 100;
+                gameData.stars += 1;
+                feedback.className = 'feedback correct show';
+                feedback.innerHTML = `
+                    <strong>¡Muy bien! 🎉</strong><br>
+                    Das ist richtig! +100 Punkte und +1 Stern ⭐
+                    ${gameData.currentScenario < gameData.scenarios.length - 1 ? 
+                        '<br><button class="btn" style="margin-top: 15px;" onclick="nextScenario()">Weiter →</button>' :
+                        '<br><button class="btn" style="margin-top: 15px;" onclick="showCelebration()">Ergebnis ansehen 🎊</button>'
+                    }
+                `;
+                speak('¡Muy bien!');
+            } else {
+                options[selectedIdx].classList.add('incorrect');
+                options[scenario.correct].classList.add('correct');
+                feedback.className = 'feedback incorrect show';
+                feedback.innerHTML = `
+                    <strong>¡Inténtalo de nuevo! 💪</strong><br>
+                    Die richtige Antwort ist: <strong>${scenario.options[scenario.correct]}</strong>
+                    ${gameData.currentScenario < gameData.scenarios.length - 1 ? 
+                        '<br><button class="btn" style="margin-top: 15px;" onclick="nextScenario()">Weiter →</button>' :
+                        '<br><button class="btn" style="margin-top: 15px;" onclick="showCelebration()">Ergebnis ansehen 🎊</button>'
+                    }
+                `;
+            }
+            
+            updateDisplay();
+        }
+
+        function nextScenario() {
+            gameData.currentScenario++;
+            if (gameData.currentScenario < gameData.scenarios.length) {
+                showScenario();
+            } else {
+                showCelebration();
+            }
+        }
+
+        function showCelebration() {
+            const percentage = (gameData.stars / gameData.scenarios.length * 100).toFixed(0);
+            let message = '';
+            let emoji = '';
+            
+            if (percentage >= 90) {
+                message = '¡Excelente! Du bist ein Madrid-Experte!';
+                emoji = '🏆';
+            } else if (percentage >= 70) {
+                message = '¡Muy bien! Du kennst dich schon gut aus!';
+                emoji = '🌟';
+            } else if (percentage >= 50) {
+                message = '¡Bien hecho! Weiter so!';
+                emoji = '👍';
+            } else {
+                message = 'Gut gemacht! Übe weiter!';
+                emoji = '💪';
+            }
+
+            const content = `
+                <div class="celebration">
+                    <div class="star">${emoji}</div>
+                    <h2>¡Felicidades!</h2>
+                    <p style="font-size: 1.3em; margin: 20px 0;">${message}</p>
+                    
+                    <div class="stats">
+                        <div class="stat-card">
+                            <div class="number">${gameData.score}</div>
+                            <div class="label">Punkte</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="number">${gameData.stars}/${gameData.scenarios.length}</div>
+                            <div class="label">Sterne ⭐</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="number">${percentage}%</div>
+                            <div class="label">Erfolgsquote</div>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 30px;">
+                        <button class="btn" onclick="startGame()">🔄 Nochmal spielen</button>
+                        <button class="btn btn-secondary" onclick="showVocabReview()">📚 Vokabeln wiederholen</button>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('gameContent').innerHTML = content;
+            speak('¡Felicidades!');
+        }
+
+        function showVocabReview() {
+            const allVocab = gameData.scenarios.flatMap(s => s.vocab);
+            const uniqueVocab = [...new Set(allVocab)];
+            
+            const vocabList = uniqueVocab.map(v => 
+                `<div class="vocab-card">${v}</div>`
+            ).join('');
+
+            const content = `
+                <div style="padding: 20px;">
+                    <h2 style="color: #667eea; text-align: center; margin-bottom: 30px;">
+                        📚 Alle gelernten Vokabeln
+                    </h2>
+                    ${vocabList}
+                    <div style="text-align: center; margin-top: 30px;">
+                        <button class="btn" onclick="startGame()">🔄 Nochmal spielen</button>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('gameContent').innerHTML = content;
+        }
+
+        function updateDisplay() {
+            document.getElementById('level').textContent = gameData.currentScenario + 1;
+            document.getElementById('score').textContent = gameData.score;
+            document.getElementById('stars').textContent = gameData.stars;
+        }
+
+        // Start
+        showWelcome();
+    </script>
+</body>
+</html>
