@@ -18,14 +18,17 @@ class EjercicioTracker {
     }
 
     /**
-     * Solicitar nombre del estudiante y registrarlo
+     * Solicitar nombre del estudiante
      */
     async solicitarNombre() {
         return new Promise((resolve) => {
-            // Verificar si ya hay un estudiante en sessionStorage
-            const estudianteGuardado = sessionStorage.getItem('estudiante');
-            if (estudianteGuardado) {
-                this.estudiante = JSON.parse(estudianteGuardado);
+            // Verificar si ya hay un nombre en sessionStorage
+            const nombreGuardado = sessionStorage.getItem('estudiante_nombre');
+            if (nombreGuardado) {
+                this.estudiante = {
+                    nombre: nombreGuardado,
+                    primer_nombre: nombreGuardado.split(' ')[0]
+                };
                 resolve(this.estudiante);
                 return;
             }
@@ -108,7 +111,7 @@ class EjercicioTracker {
             const submit = document.getElementById('nombreSubmit');
             const error = document.getElementById('nombreError');
 
-            const handleSubmit = async () => {
+            const handleSubmit = () => {
                 const nombre = input.value.trim();
 
                 if (!nombre || nombre.length < 2) {
@@ -117,52 +120,18 @@ class EjercicioTracker {
                     return;
                 }
 
-                submit.disabled = true;
-                submit.textContent = 'Registrando...';
+                // Guardar nombre en sessionStorage
+                this.estudiante = {
+                    nombre: nombre,
+                    primer_nombre: nombre.split(' ')[0]
+                };
+                sessionStorage.setItem('estudiante_nombre', nombre);
 
-                try {
-                    const response = await fetch(`${this.API_BASE_URL}?action=register_student`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({ nombre })
-                    });
+                // Cerrar modal
+                document.getElementById('nombreModal').remove();
 
-                    const data = await response.json();
-
-                    if (data.success) {
-                        this.estudiante = data.estudiante;
-                        sessionStorage.setItem('estudiante', JSON.stringify(this.estudiante));
-
-                        // Cerrar modal
-                        document.getElementById('nombreModal').remove();
-
-                        // Resolver promesa
-                        resolve(this.estudiante);
-                    } else {
-                        throw new Error(data.error || 'Error al registrar estudiante');
-                    }
-                } catch (err) {
-                    if (!this.silentErrors) {
-                        console.error('Error al registrar estudiante:', err);
-                        error.textContent = 'Error de conexión. Por favor, intenta de nuevo.';
-                        error.style.display = 'block';
-                        submit.disabled = false;
-                        submit.textContent = 'Comenzar';
-                    } else {
-                        // En modo silencioso, crear estudiante local sin backend
-                        console.warn('Backend no disponible. Modo local activado.');
-                        this.estudiante = {
-                            id: Date.now(),
-                            nombre: nombre,
-                            primer_nombre: nombre.split(' ')[0]
-                        };
-                        sessionStorage.setItem('estudiante', JSON.stringify(this.estudiante));
-                        document.getElementById('nombreModal').remove();
-                        resolve(this.estudiante);
-                    }
-                }
+                // Resolver promesa
+                resolve(this.estudiante);
             };
 
             submit.addEventListener('click', handleSubmit);
@@ -219,7 +188,7 @@ class EjercicioTracker {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    estudiante_id: this.estudiante.id,
+                    estudiante_nombre: this.estudiante.nombre,
                     ejercicio_id: this.ejercicioId,
                     ejercicio_titulo: this.ejercicioTitulo
                 })
@@ -267,7 +236,7 @@ class EjercicioTracker {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    estudiante_id: this.estudiante.id,
+                    estudiante_nombre: this.estudiante.nombre,
                     ejercicio_id: this.ejercicioId,
                     ejercicio_titulo: this.ejercicioTitulo,
                     resultado: resultado,

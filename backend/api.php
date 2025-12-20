@@ -3,10 +3,9 @@
  * API para Sistema de Ejercicios Didácticos
  *
  * Endpoints:
- * - POST /api.php?action=register_student - Registrar/obtener estudiante
  * - POST /api.php?action=start_exercise - Registrar inicio de ejercicio
  * - POST /api.php?action=complete_exercise - Registrar ejercicio completado
- * - GET /api.php?action=get_student&id={id} - Obtener datos de estudiante
+ * - GET /api.php?action=get_student&nombre={nombre} - Obtener datos de estudiante
  */
 
 require_once 'config.php';
@@ -19,10 +18,6 @@ $input = file_get_contents('php://input');
 $data = json_decode($input, true);
 
 switch ($action) {
-    case 'register_student':
-        registerStudent($data);
-        break;
-
     case 'start_exercise':
         startExercise($data);
         break;
@@ -32,7 +27,7 @@ switch ($action) {
         break;
 
     case 'get_student':
-        getStudent($_GET['id'] ?? null);
+        getStudent($_GET['nombre'] ?? null);
         break;
 
     default:
@@ -43,21 +38,11 @@ switch ($action) {
 }
 
 /**
- * Registrar o obtener estudiante
+ * Obtener o crear estudiante por nombre
  */
-function registerStudent($data) {
-    $missing = validateRequired($data, ['nombre']);
-    if (!empty($missing)) {
-        sendResponse([
-            'success' => false,
-            'error' => 'Faltan campos requeridos: ' . implode(', ', $missing)
-        ], 400);
-    }
-
+function getOrCreateStudent($nombre) {
     $pdo = getDBConnection();
-    $nombre = trim($data['nombre']);
-
-    // Extraer primer nombre
+    $nombre = trim($nombre);
     $primerNombre = explode(' ', $nombre)[0];
 
     // Buscar si el estudiante ya existe
@@ -66,36 +51,25 @@ function registerStudent($data) {
     $estudiante = $stmt->fetch();
 
     if ($estudiante) {
-        // Estudiante ya existe
-        sendResponse([
-            'success' => true,
-            'estudiante' => $estudiante,
-            'nuevo' => false
-        ]);
-    } else {
-        // Crear nuevo estudiante
-        $stmt = $pdo->prepare("INSERT INTO estudiantes (nombre, primer_nombre) VALUES (?, ?)");
-        $stmt->execute([$nombre, $primerNombre]);
-
-        $estudianteId = $pdo->lastInsertId();
-
-        sendResponse([
-            'success' => true,
-            'estudiante' => [
-                'id' => $estudianteId,
-                'nombre' => $nombre,
-                'primer_nombre' => $primerNombre
-            ],
-            'nuevo' => true
-        ]);
+        return $estudiante;
     }
+
+    // Crear nuevo estudiante
+    $stmt = $pdo->prepare("INSERT INTO estudiantes (nombre, primer_nombre) VALUES (?, ?)");
+    $stmt->execute([$nombre, $primerNombre]);
+
+    return [
+        'id' => $pdo->lastInsertId(),
+        'nombre' => $nombre,
+        'primer_nombre' => $primerNombre
+    ];
 }
 
 /**
  * Registrar inicio de ejercicio
  */
 function startExercise($data) {
-    $missing = validateRequired($data, ['estudiante_id', 'ejercicio_id', 'ejercicio_titulo']);
+    $missing = validateRequired($data, ['estudiante_nombre', 'ejercicio_id', 'ejercicio_titulo']);
     if (!empty($missing)) {
         sendResponse([
             'success' => false,
@@ -105,6 +79,9 @@ function startExercise($data) {
 
     $pdo = getDBConnection();
 
+    // Obtener o crear estudiante
+    $estudiante = getOrCreateStudent($data['estudiante_nombre']);
+
     // Insertar registro de inicio
     $stmt = $pdo->prepare("
         INSERT INTO ejercicios_iniciados (estudiante_id, ejercicio_id, ejercicio_titulo)
@@ -112,7 +89,7 @@ function startExercise($data) {
     ");
 
     $stmt->execute([
-        $data['estudiante_id'],
+        $estudiante['id'],
         $data['ejercicio_id'],
         $data['ejercicio_titulo']
     ]);
@@ -122,6 +99,7 @@ function startExercise($data) {
     sendResponse([
         'success' => true,
         'inicio_id' => $inicioId,
+        'estudiante_nombre' => $estudiante['nombre'],
         'mensaje' => 'Ejercicio iniciado correctamente'
     ]);
 }
@@ -131,7 +109,7 @@ function startExercise($data) {
  */
 function completeExercise($data) {
     $missing = validateRequired($data, [
-        'estudiante_id',
+        'estudiante_nombre',
         'ejercicio_id',
         'ejercicio_titulo',
         'resultado'
@@ -149,6 +127,9 @@ function completeExercise($data) {
     try {
         $pdo->beginTransaction();
 
+        // Obtener o crear estudiante
+        $estudiante = getOrCreateStudent($data['estudiante_nombre']);
+
         // 1. Eliminar todos los intentos no completados de este ejercicio por este estudiante
         $stmt = $pdo->prepare("
             DELETE FROM ejercicios_iniciados
@@ -156,7 +137,7 @@ function completeExercise($data) {
             AND ejercicio_id = ?
             AND completado = 0
         ");
-        $stmt->execute([$data['estudiante_id'], $data['ejercicio_id']]);
+        $stmt->execute([$estudiante['id'], $data['ejercicio_id']]);
 
         // 2. Insertar resultado del ejercicio completado
         $resultado = is_array($data['resultado']) ? json_encode($data['resultado'], JSON_UNESCAPED_UNICODE) : $data['resultado'];
@@ -174,7 +155,7 @@ function completeExercise($data) {
         ");
 
         $stmt->execute([
-            $data['estudiante_id'],
+            $estudiante['id'],
             $data['ejercicio_id'],
             $data['ejercicio_titulo'],
             $resultado,
@@ -194,7 +175,7 @@ function completeExercise($data) {
         ");
 
         $stmt->execute([
-            $data['estudiante_id'],
+            $estudiante['id'],
             $data['ejercicio_id'],
             $data['ejercicio_titulo']
         ]);
@@ -204,6 +185,7 @@ function completeExercise($data) {
         sendResponse([
             'success' => true,
             'mensaje' => 'Ejercicio completado correctamente',
+            'estudiante_nombre' => $estudiante['nombre'],
             'resultado_id' => $pdo->lastInsertId()
         ]);
 
@@ -218,19 +200,19 @@ function completeExercise($data) {
 }
 
 /**
- * Obtener datos de estudiante
+ * Obtener datos de estudiante por nombre
  */
-function getStudent($id) {
-    if (!$id) {
+function getStudent($nombre) {
+    if (!$nombre) {
         sendResponse([
             'success' => false,
-            'error' => 'ID de estudiante no proporcionado'
+            'error' => 'Nombre de estudiante no proporcionado'
         ], 400);
     }
 
     $pdo = getDBConnection();
-    $stmt = $pdo->prepare("SELECT * FROM vista_estudiantes WHERE id = ?");
-    $stmt->execute([$id]);
+    $stmt = $pdo->prepare("SELECT * FROM vista_estudiantes WHERE nombre = ?");
+    $stmt->execute([$nombre]);
     $estudiante = $stmt->fetch();
 
     if ($estudiante) {
