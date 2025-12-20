@@ -12,10 +12,9 @@ class EjercicioTracker {
         this.inicioId = null;
         this.tiempoInicio = null;
 
-        // Configuración del backend - ACTUALIZAR SEGÚN ENTORNO
-        this.API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-            ? 'http://localhost:8000/api.php'
-            : '../backend/api.php'; // Ajustar según configuración de producción
+        // Configuración del backend desde config.js o valor por defecto
+        this.API_BASE_URL = window.APP_CONFIG?.apiUrl || window.BACKEND_API_URL || 'http://localhost:8000/api.php';
+        this.silentErrors = window.APP_CONFIG?.silentErrors !== undefined ? window.APP_CONFIG.silentErrors : true;
     }
 
     /**
@@ -145,11 +144,24 @@ class EjercicioTracker {
                         throw new Error(data.error || 'Error al registrar estudiante');
                     }
                 } catch (err) {
-                    console.error('Error al registrar estudiante:', err);
-                    error.textContent = 'Error de conexión. Por favor, intenta de nuevo.';
-                    error.style.display = 'block';
-                    submit.disabled = false;
-                    submit.textContent = 'Comenzar';
+                    if (!this.silentErrors) {
+                        console.error('Error al registrar estudiante:', err);
+                        error.textContent = 'Error de conexión. Por favor, intenta de nuevo.';
+                        error.style.display = 'block';
+                        submit.disabled = false;
+                        submit.textContent = 'Comenzar';
+                    } else {
+                        // En modo silencioso, crear estudiante local sin backend
+                        console.warn('Backend no disponible. Modo local activado.');
+                        this.estudiante = {
+                            id: Date.now(),
+                            nombre: nombre,
+                            primer_nombre: nombre.split(' ')[0]
+                        };
+                        sessionStorage.setItem('estudiante', JSON.stringify(this.estudiante));
+                        document.getElementById('nombreModal').remove();
+                        resolve(this.estudiante);
+                    }
                 }
             };
 
@@ -220,12 +232,18 @@ class EjercicioTracker {
                 console.log('Ejercicio iniciado:', data);
                 return true;
             } else {
-                console.error('Error al iniciar ejercicio:', data.error);
+                if (!this.silentErrors) {
+                    console.error('Error al iniciar ejercicio:', data.error);
+                }
                 return false;
             }
         } catch (err) {
-            console.error('Error de conexión al iniciar ejercicio:', err);
-            return false;
+            if (!this.silentErrors) {
+                console.error('Error de conexión al iniciar ejercicio:', err);
+            } else {
+                console.warn('Backend no disponible. Continuando en modo local.');
+            }
+            return this.silentErrors; // Retorna true si errores silenciados, false si no
         }
     }
 
@@ -265,12 +283,18 @@ class EjercicioTracker {
                 console.log('Ejercicio completado registrado:', data);
                 return true;
             } else {
-                console.error('Error al registrar completado:', data.error);
+                if (!this.silentErrors) {
+                    console.error('Error al registrar completado:', data.error);
+                }
                 return false;
             }
         } catch (err) {
-            console.error('Error de conexión al registrar completado:', err);
-            return false;
+            if (!this.silentErrors) {
+                console.error('Error de conexión al registrar completado:', err);
+            } else {
+                console.warn('Backend no disponible. Resultado no registrado.');
+            }
+            return this.silentErrors; // Retorna true si errores silenciados, false si no
         }
     }
 

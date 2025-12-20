@@ -1,16 +1,16 @@
 <?php
 /**
- * Configuración de base de datos
- *
- * IMPORTANTE: Actualiza estos valores según tu configuración de servidor
+ * Configuración de base de datos SQLite
  */
 
-// Configuración de base de datos
-define('DB_HOST', 'localhost');
-define('DB_NAME', 'ejercicios_didacticos');
-define('DB_USER', 'root');
-define('DB_PASS', '');
-define('DB_CHARSET', 'utf8mb4');
+// Ruta a la base de datos SQLite
+define('DB_PATH', __DIR__ . '/ejercicios.db');
+
+// Puerto del servidor (se actualizará durante instalación)
+define('SERVER_PORT', '8000');
+
+// URL del backend (se actualizará durante instalación)
+define('BACKEND_URL', 'http://localhost:8000');
 
 // Zona horaria
 date_default_timezone_set('Europe/Madrid');
@@ -32,14 +32,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
  */
 function getDBConnection() {
     try {
-        $dsn = "mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=" . DB_CHARSET;
-        $options = [
-            PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
-            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-            PDO::ATTR_EMULATE_PREPARES   => false,
-        ];
+        $pdo = new PDO('sqlite:' . DB_PATH);
+        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
 
-        $pdo = new PDO($dsn, DB_USER, DB_PASS, $options);
+        // Habilitar foreign keys en SQLite
+        $pdo->exec('PRAGMA foreign_keys = ON');
+
         return $pdo;
     } catch (PDOException $e) {
         http_response_code(500);
@@ -72,4 +71,35 @@ function validateRequired($data, $fields) {
         }
     }
     return $missing;
+}
+
+/**
+ * Iniciar sesión
+ */
+function startSession() {
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
+}
+
+/**
+ * Verificar si el usuario está autenticado
+ */
+function isAuthenticated() {
+    startSession();
+    return isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'] === true;
+}
+
+/**
+ * Requerir autenticación
+ */
+function requireAuth() {
+    if (!isAuthenticated()) {
+        http_response_code(401);
+        echo json_encode([
+            'success' => false,
+            'error' => 'No autorizado'
+        ]);
+        exit();
+    }
 }

@@ -1,27 +1,16 @@
-# Code Lab - Sensible Dateien nicht committen
+# Archivos de configuración generados
+backend/config.php
+backend/ejercicios.db
+ejercicios/config.js
+start_server.sh
 
-# PHP Configuration (enthält DB-Passwörter!)
-api/config.php
+# Backups
+*.db.backup
+*.backup
 
-# Uploads (Schüler-Dateien)
-uploads/*
-!uploads/.gitkeep
-
-# Error Logs
-api/error.log
+# Logs
 *.log
 
-# System Files
+# Sistema operativo
 .DS_Store
 Thumbs.db
-
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# Temporäre Dateien
-tmp/
-temp/
-cache/

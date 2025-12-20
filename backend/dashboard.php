@@ -9,6 +9,15 @@ require_once 'config.php';
 // Desactivar CORS headers para páginas HTML
 header_remove('Access-Control-Allow-Origin');
 
+startSession();
+
+// Verificar autenticación
+if (!isAuthenticated()) {
+    // Mostrar página de login
+    include 'login.php';
+    exit();
+}
+
 $pdo = getDBConnection();
 
 // Obtener filtros
@@ -123,17 +132,44 @@ $statsPorEjercicio = $pdo->query("SELECT * FROM vista_estadisticas ORDER BY tota
             padding: 30px;
             margin-bottom: 20px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
-        .header h1 {
+        .header-content h1 {
             color: #667eea;
             font-size: 2.5em;
             margin-bottom: 10px;
         }
 
-        .header p {
+        .header-content p {
             color: #6c757d;
             font-size: 1.1em;
+        }
+
+        .user-info {
+            text-align: right;
+        }
+
+        .user-info p {
+            color: #6c757d;
+            margin-bottom: 10px;
+        }
+
+        .logout-btn {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .logout-btn:hover {
+            transform: translateY(-2px);
         }
 
         .stats-grid {
@@ -328,7 +364,17 @@ $statsPorEjercicio = $pdo->query("SELECT * FROM vista_estadisticas ORDER BY tota
         }
 
         @media (max-width: 768px) {
-            .header h1 {
+            .header {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .user-info {
+                text-align: center;
+                margin-top: 20px;
+            }
+
+            .header-content h1 {
                 font-size: 1.8em;
             }
 
@@ -349,8 +395,14 @@ $statsPorEjercicio = $pdo->query("SELECT * FROM vista_estadisticas ORDER BY tota
 <body>
     <div class="container">
         <div class="header">
-            <h1>📊 Dashboard de Estadísticas</h1>
-            <p>Panel de control para seguimiento de ejercicios y estudiantes</p>
+            <div class="header-content">
+                <h1>📊 Dashboard de Estadísticas</h1>
+                <p>Panel de control para seguimiento de ejercicios y estudiantes</p>
+            </div>
+            <div class="user-info">
+                <p>👤 Usuario: <strong><?= htmlspecialchars($_SESSION['admin_username']) ?></strong></p>
+                <button class="logout-btn" onclick="logout()">🚪 Cerrar Sesión</button>
+            </div>
         </div>
 
         <!-- Estadísticas generales -->
@@ -497,5 +549,19 @@ $statsPorEjercicio = $pdo->query("SELECT * FROM vista_estadisticas ORDER BY tota
             <?php endif; ?>
         </div>
     </div>
+
+    <script>
+        function logout() {
+            if (confirm('¿Estás seguro de que deseas cerrar sesión?')) {
+                fetch('auth.php?action=logout', { method: 'POST' })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            window.location.href = 'dashboard.php';
+                        }
+                    });
+            }
+        }
+    </script>
 </body>
 </html>

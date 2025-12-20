@@ -1,212 +1,307 @@
 # Backend - Sistema de Ejercicios Didácticos
 
-Backend PHP para el seguimiento de estudiantes y estadísticas de ejercicios.
+Backend PHP con SQLite para el seguimiento de estudiantes y estadísticas de ejercicios.
+
+## Características
+
+- ✅ Base de datos SQLite (sin necesidad de MySQL)
+- ✅ API REST para gestión de ejercicios
+- ✅ Sistema de autenticación para dashboard
+- ✅ Instalador automático para Linux/macOS
+- ✅ Dashboard con estadísticas y filtros
+- ✅ Modo offline/silent errors en frontend
+
+## Instalación Rápida
+
+### Usar el Instalador Automático (Recomendado)
+
+Desde el directorio raíz del proyecto:
+
+```bash
+./install.sh
+```
+
+El instalador te preguntará:
+- Puerto del servidor backend (default: 8000)
+- URL del backend (default: http://localhost:8000)
+- Usuario administrador (default: admin)
+- Contraseña del administrador
+
+### Instalación Manual
+
+Si prefieres configurar manualmente:
+
+1. **Configurar el backend:**
+```bash
+cd backend
+cp config.php.example config.php
+# Editar config.php con tus valores
+```
+
+2. **Inicializar base de datos:**
+```bash
+php init_database.php admin tu_contraseña
+```
+
+3. **Configurar frontend:**
+```bash
+cd ../ejercicios
+cat > config.js << EOF
+window.BACKEND_API_URL = 'http://localhost:8000/api.php';
+window.APP_CONFIG = {
+    backendUrl: 'http://localhost:8000',
+    apiUrl: 'http://localhost:8000/api.php',
+    silentErrors: true
+};
+EOF
+```
+
+4. **Iniciar servidor:**
+```bash
+cd ../backend
+php -S 0.0.0.0:8000
+```
 
 ## Requisitos
 
 - PHP 7.4 o superior
-- MySQL 5.7 o superior / MariaDB 10.3 o superior
-- Extensión PDO de PHP habilitada
-- Servidor web (Apache/Nginx) o PHP built-in server
+- Extensión PHP SQLite3 (habilitada por defecto en la mayoría de instalaciones)
+- Navegador web moderno
 
-## Instalación
-
-### 1. Configurar Base de Datos
+### Verificar Requisitos
 
 ```bash
-# Acceder a MySQL
-mysql -u root -p
+# Verificar PHP
+php --version
 
-# Ejecutar el script de creación de base de datos
-source database.sql
+# Verificar SQLite3
+php -m | grep sqlite3
 ```
 
-O copiar y pegar el contenido de `database.sql` en phpMyAdmin.
+## Uso
 
-### 2. Configurar Conexión
+### Iniciar el Servidor
 
-Editar `config.php` y actualizar las credenciales de la base de datos:
+Después de instalar:
 
-```php
-define('DB_HOST', 'localhost');
-define('DB_NAME', 'ejercicios_didacticos');
-define('DB_USER', 'tu_usuario');
-define('DB_PASS', 'tu_contraseña');
+```bash
+./start_server.sh
 ```
 
-### 3. Configurar CORS (Opcional)
+O manualmente:
 
-Si el frontend está en un dominio diferente al backend, actualizar en `config.php`:
-
-```php
-header('Access-Control-Allow-Origin: https://tu-dominio.com');
-```
-
-### 4. Iniciar Servidor
-
-**Opción A: Servidor integrado de PHP (desarrollo)**
 ```bash
 cd backend
-php -S localhost:8000
+php -S 0.0.0.0:8000
 ```
 
-**Opción B: Apache/Nginx (producción)**
-Configurar el virtual host apuntando a la carpeta `backend/`.
+### Acceder al Dashboard
+
+1. Abrir en navegador: `http://localhost:8000/dashboard.php`
+2. Iniciar sesión con las credenciales configuradas durante la instalación
+3. El dashboard requiere autenticación
+
+### Acceder a los Ejercicios
+
+1. Abrir `index.html` en el navegador
+2. Los ejercicios se comunican automáticamente con el backend
+3. Si el backend no está disponible, funcionan en modo offline
+
+## Estructura de Archivos
+
+```
+backend/
+├── config.php              # Configuración (generado por instalador)
+├── init_database.php       # Script de inicialización de BD
+├── api.php                 # API REST para ejercicios
+├── auth.php                # API de autenticación
+├── dashboard.php           # Dashboard con estadísticas
+├── login.php               # Página de login
+├── ejercicios.db           # Base de datos SQLite (creada al instalar)
+└── README.md               # Este archivo
+```
 
 ## Endpoints de API
 
-### POST /api.php?action=register_student
+### Ejercicios (api.php)
 
-Registrar o obtener un estudiante.
-
-**Request:**
+**POST /api.php?action=register_student**
 ```json
 {
   "nombre": "Juan Pérez"
 }
 ```
 
-**Response:**
-```json
-{
-  "success": true,
-  "estudiante": {
-    "id": 1,
-    "nombre": "Juan Pérez",
-    "primer_nombre": "Juan"
-  },
-  "nuevo": true
-}
-```
-
-### POST /api.php?action=start_exercise
-
-Registrar inicio de un ejercicio.
-
-**Request:**
+**POST /api.php?action=start_exercise**
 ```json
 {
   "estudiante_id": 1,
   "ejercicio_id": "mi-barrio",
-  "ejercicio_titulo": "Madrid Abenteuer - Mi Barrio"
+  "ejercicio_titulo": "Madrid Abenteuer"
 }
 ```
 
-**Response:**
-```json
-{
-  "success": true,
-  "inicio_id": 5,
-  "mensaje": "Ejercicio iniciado correctamente"
-}
-```
-
-### POST /api.php?action=complete_exercise
-
-Registrar ejercicio completado.
-
-**Request:**
+**POST /api.php?action=complete_exercise**
 ```json
 {
   "estudiante_id": 1,
   "ejercicio_id": "mi-barrio",
-  "ejercicio_titulo": "Madrid Abenteuer - Mi Barrio",
-  "resultado": {
-    "nivel_alcanzado": 10,
-    "puntos_totales": 100,
-    "estrellas": 3
-  },
+  "ejercicio_titulo": "Madrid Abenteuer",
+  "resultado": {"puntos": 100, "estrellas": 3},
   "puntuacion": 100,
   "nivel": "A1-A2",
   "tiempo_transcurrido": 300
 }
 ```
 
-**Response:**
+### Autenticación (auth.php)
+
+**POST /auth.php?action=login**
 ```json
 {
-  "success": true,
-  "mensaje": "Ejercicio completado correctamente",
-  "resultado_id": 12
+  "username": "admin",
+  "password": "contraseña"
 }
 ```
 
-### GET /api.php?action=get_student&id={id}
+**POST /auth.php?action=logout**
 
-Obtener datos de un estudiante.
+**GET /auth.php?action=check**
 
-**Response:**
-```json
-{
-  "success": true,
-  "estudiante": {
-    "id": 1,
-    "nombre": "Juan Pérez",
-    "primer_nombre": "Juan",
-    "fecha_registro": "2025-01-15 10:30:00",
-    "ejercicios_completados": 5,
-    "ejercicios_iniciados": 7,
-    "promedio_general": 85.5
-  }
-}
+## Configuración
+
+### Cambiar Puerto del Servidor
+
+Editar `backend/config.php`:
+```php
+define('SERVER_PORT', '8080');
 ```
 
-## Dashboard
+Y `ejercicios/config.js`:
+```javascript
+window.BACKEND_API_URL = 'http://localhost:8080/api.php';
+```
 
-Acceder al dashboard en: `http://localhost:8000/dashboard.php`
+### Modo Silent Errors
 
-El dashboard permite:
-- Ver estadísticas generales
-- Filtrar por ejercicio, estudiante, nivel y fechas
-- Ver resultados recientes
-- Analizar estadísticas por ejercicio
+Por defecto, el frontend no muestra errores de conexión al usuario. Para cambiar esto:
 
-## Estructura de Base de Datos
+En `ejercicios/config.js`:
+```javascript
+window.APP_CONFIG = {
+    // ...
+    silentErrors: false  // Mostrar errores
+};
+```
 
-### Tabla: estudiantes
-- `id`: ID único
-- `nombre`: Nombre completo
-- `primer_nombre`: Primer nombre extraído
-- `fecha_registro`: Fecha de registro
+### Cambiar Credenciales de Admin
 
-### Tabla: ejercicios_iniciados
-- `id`: ID único
-- `estudiante_id`: ID del estudiante
-- `ejercicio_id`: ID del ejercicio
-- `ejercicio_titulo`: Título del ejercicio
-- `fecha_inicio`: Fecha de inicio
-- `completado`: Si fue completado (0/1)
+```bash
+# Método 1: Reinstalar (elimina todos los datos)
+rm backend/ejercicios.db
+php backend/init_database.php nuevo_usuario nueva_contraseña
 
-### Tabla: resultados
-- `id`: ID único
-- `estudiante_id`: ID del estudiante
-- `ejercicio_id`: ID del ejercicio
-- `ejercicio_titulo`: Título del ejercicio
-- `resultado`: JSON con datos del resultado
-- `puntuacion`: Puntuación obtenida
-- `nivel`: Nivel del ejercicio
-- `fecha_completado`: Fecha de completado
-- `tiempo_transcurrido`: Tiempo en segundos
+# Método 2: Agregar nuevo admin directamente en SQLite
+sqlite3 backend/ejercicios.db
+```
 
-## Seguridad
+## Base de Datos
 
-- Usar HTTPS en producción
-- Actualizar credenciales de base de datos
-- Configurar CORS apropiadamente
-- Validar y sanitizar todas las entradas
-- Usar prepared statements (ya implementado)
+### Tablas
+
+- **admins** - Usuarios administradores
+- **estudiantes** - Registro de estudiantes
+- **ejercicios_iniciados** - Tracking de sesiones
+- **resultados** - Resultados completados
+
+### Vistas
+
+- **vista_estadisticas** - Estadísticas por ejercicio
+- **vista_estudiantes** - Resumen de estudiantes
+
+### Backup
+
+```bash
+# Crear backup
+cp backend/ejercicios.db backend/ejercicios.db.backup
+
+# Restaurar backup
+cp backend/ejercicios.db.backup backend/ejercicios.db
+```
 
 ## Troubleshooting
 
-**Error de conexión a base de datos:**
-- Verificar credenciales en `config.php`
-- Verificar que MySQL esté corriendo
-- Verificar que la base de datos exista
+**Error: "PHP no está instalado"**
+```bash
+# macOS
+brew install php
 
-**CORS errors:**
-- Actualizar `Access-Control-Allow-Origin` en `config.php`
-- En desarrollo, usar `*` para permitir todos los orígenes
+# Ubuntu/Debian
+sudo apt-get install php php-sqlite3
 
-**Errores de permisos:**
-- Verificar permisos de archivos (644 para archivos, 755 para directorios)
-- Verificar que el usuario de MySQL tenga permisos adecuados
+# Fedora/RHEL
+sudo dnf install php php-sqlite3
+```
+
+**Error: "Extensión SQLite3 no encontrada"**
+```bash
+# Verificar
+php -m | grep sqlite3
+
+# Habilitar en php.ini (descomentar)
+extension=sqlite3
+```
+
+**Error: "Permission denied" en ejercicios.db**
+```bash
+chmod 666 backend/ejercicios.db
+```
+
+**Dashboard muestra error 500**
+- Verificar que ejercicios.db existe
+- Verificar permisos del archivo
+- Revisar logs de PHP
+
+**Ejercicios no guardan datos**
+- Verificar que el backend esté corriendo
+- Verificar URL en ejercicios/config.js
+- Abrir consola del navegador para ver errores
+
+## Desarrollo
+
+### Modo Debug
+
+En `config.php`, agregar al inicio:
+```php
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+```
+
+### Logs
+
+Los errores de PHP se muestran en la terminal donde corre el servidor.
+
+### Agregar Nuevo Endpoint
+
+1. Editar `api.php`
+2. Agregar nuevo case en el switch
+3. Crear función para manejar la acción
+
+## Seguridad
+
+- ✅ Contraseñas hasheadas con `password_hash()`
+- ✅ Prepared statements para prevenir SQL injection
+- ✅ Validación de datos de entrada
+- ✅ Sesiones PHP para autenticación
+- ✅ CORS configurado
+
+**Recomendaciones para producción:**
+- Cambiar contraseña por defecto
+- Usar HTTPS
+- Configurar CORS para dominios específicos
+- Deshabilitar display_errors
+- Implementar rate limiting
+
+## Licencia
+
+Este proyecto es de uso educativo.
