@@ -2,7 +2,6 @@
 backend/config.php
 backend/ejercicios.db
 ejercicios/config.js
-start_server.sh
 
 # Backups
 *.db.backup
