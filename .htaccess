@@ -1,0 +1,28 @@
+# Code Lab - Apache Configuration
+# Nur notwendig wenn Sie Apache verwenden
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+
+    # API Routing - Optional, funktioniert auch ohne
+    # RewriteRule ^api/(.*)$ api/$1 [L]
+</IfModule>
+
+# CORS Headers (wenn nicht in PHP config.php gesetzt)
+<IfModule mod_headers.c>
+    Header set Access-Control-Allow-Origin "*"
+    Header set Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
+    Header set Access-Control-Allow-Headers "Content-Type, Authorization"
+</IfModule>
+
+# Verzeichnis-Listing deaktivieren
+Options -Indexes
+
+# PHP-Einstellungen
+<IfModule mod_php7.c>
+    php_value upload_max_filesize 10M
+    php_value post_max_size 10M
+    php_value max_execution_time 30
+    php_value max_input_time 30
+</IfModule>
