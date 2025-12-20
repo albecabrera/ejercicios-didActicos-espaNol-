@@ -660,7 +660,11 @@
         </div>
     </div>
 
+    <script src="ejercicio-tracker.js"></script>
     <script>
+        // Configuración del tracker
+        const tracker = new EjercicioTracker('escape-room', 'Escape Room - Casa de los Gatos', 'A1-A2');
+
         // Audio Context
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         const audioContext = new AudioContext();
@@ -759,13 +763,16 @@
             toggle.textContent = newTheme === 'light' ? '🌙' : '☀️';
         }
 
-        function startGame() {
+        async function startGame() {
+            // Inicializar tracker (solicitar nombre, registrar inicio)
+            await tracker.inicializar();
+
             document.getElementById('storyIntro').classList.add('hidden');
             document.getElementById('gameArea').classList.remove('hidden');
-            
+
             startTime = Date.now();
             timerInterval = setInterval(updateTimer, 1000);
-            
+
             renderRoom();
         }
 
@@ -1005,19 +1012,29 @@
             progressBar.textContent = `Zimmer ${completedRooms}/${rooms.length}`;
         }
 
-        function endGame() {
+        async function endGame() {
             clearInterval(timerInterval);
-            
+
             document.getElementById('gameArea').classList.add('hidden');
             document.getElementById('victoryScreen').classList.remove('hidden');
-            
+
             const elapsed = Math.floor((Date.now() - startTime) / 1000);
             const minutes = Math.floor(elapsed / 60);
             const seconds = elapsed % 60;
             const timeText = `${minutes}:${seconds.toString().padStart(2, '0')}`;
-            
+
             const accuracy = Math.round((rooms.length / totalAttempts) * 100);
-            
+
+            // Registrar ejercicio completado en el backend
+            const resultado = {
+                habitaciones_completadas: rooms.length,
+                intentos_totales: totalAttempts,
+                precision: accuracy,
+                tiempo: elapsed
+            };
+            const puntuacion = accuracy; // Usar la precisión como puntuación
+            await tracker.registrarCompletado(resultado, puntuacion);
+
             document.getElementById('statsContainer').innerHTML = `
                 <div class="stat-card">
                     <div class="stat-value">${rooms.length}</div>
@@ -1032,7 +1049,7 @@
                     <div class="stat-label">Genauigkeit</div>
                 </div>
             `;
-            
+
             playVictorySound();
             createMassiveConfetti();
         }

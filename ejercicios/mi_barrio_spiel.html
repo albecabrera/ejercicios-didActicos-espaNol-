@@ -365,7 +365,11 @@
         </div>
     </div>
 
+    <script src="ejercicio-tracker.js"></script>
     <script>
+        // Configuración del tracker
+        const tracker = new EjercicioTracker('mi-barrio', 'Madrid Abenteuer - Mi Barrio', 'A1-A2');
+
         const gameData = {
             scenarios: [
                 {
@@ -505,7 +509,10 @@
             document.getElementById('gameContent').innerHTML = content;
         }
 
-        function startGame() {
+        async function startGame() {
+            // Inicializar tracker (solicitar nombre, registrar inicio)
+            await tracker.inicializar();
+
             gameData.currentScenario = 0;
             gameData.score = 0;
             gameData.stars = 0;
@@ -605,11 +612,11 @@
             }
         }
 
-        function showCelebration() {
+        async function showCelebration() {
             const percentage = (gameData.stars / gameData.scenarios.length * 100).toFixed(0);
             let message = '';
             let emoji = '';
-            
+
             if (percentage >= 90) {
                 message = '¡Excelente! Du bist ein Madrid-Experte!';
                 emoji = '🏆';
@@ -624,12 +631,21 @@
                 emoji = '💪';
             }
 
+            // Registrar ejercicio completado en el backend
+            const resultado = {
+                nivel_alcanzado: gameData.scenarios.length,
+                puntos_totales: gameData.score,
+                estrellas: gameData.stars,
+                porcentaje: parseFloat(percentage)
+            };
+            await tracker.registrarCompletado(resultado, gameData.score);
+
             const content = `
                 <div class="celebration">
                     <div class="star">${emoji}</div>
                     <h2>¡Felicidades!</h2>
                     <p style="font-size: 1.3em; margin: 20px 0;">${message}</p>
-                    
+
                     <div class="stats">
                         <div class="stat-card">
                             <div class="number">${gameData.score}</div>
@@ -651,7 +667,7 @@
                     </div>
                 </div>
             `;
-            
+
             document.getElementById('gameContent').innerHTML = content;
             speak('¡Felicidades!');
         }

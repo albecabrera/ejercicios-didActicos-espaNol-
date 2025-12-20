@@ -292,6 +292,94 @@
             text-decoration: underline;
         }
 
+        /* Search and filter styles */
+        .search-filter-container {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .search-box {
+            width: 100%;
+            padding: 15px 20px;
+            font-size: 1.1em;
+            border: 2px solid #e9ecef;
+            border-radius: 25px;
+            margin-bottom: 20px;
+            transition: border-color 0.3s;
+        }
+
+        .search-box:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .filters-row {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .filter-group {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .filter-label {
+            display: block;
+            color: #6c757d;
+            font-size: 0.9em;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .filter-select {
+            width: 100%;
+            padding: 10px 15px;
+            font-size: 1em;
+            border: 2px solid #e9ecef;
+            border-radius: 15px;
+            background: white;
+            cursor: pointer;
+            transition: border-color 0.3s;
+        }
+
+        .filter-select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .clear-filters-btn {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.3s;
+            margin-top: 20px;
+        }
+
+        .clear-filters-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6c757d;
+            font-size: 1.2em;
+        }
+
+        .no-results-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+        }
+
         @media (max-width: 768px) {
             .header h1 {
                 font-size: 1.8em;
@@ -312,6 +400,33 @@
         <div class="header">
             <h1>📚 Ejercicios Didácticos de Español</h1>
             <p>Ejercicios interactivos para aprender español de forma divertida</p>
+        </div>
+
+        <div class="search-filter-container">
+            <input
+                type="text"
+                id="searchBox"
+                class="search-box"
+                placeholder="🔍 Buscar ejercicios por título..."
+                oninput="applyFilters()"
+            >
+            <div class="filters-row">
+                <div class="filter-group">
+                    <label class="filter-label">Nivel:</label>
+                    <select id="levelFilter" class="filter-select" onchange="applyFilters()">
+                        <option value="">Todos los niveles</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label class="filter-label">Categoría:</label>
+                    <select id="topicFilter" class="filter-select" onchange="applyFilters()">
+                        <option value="">Todas las categorías</option>
+                    </select>
+                </div>
+            </div>
+            <button class="clear-filters-btn" onclick="clearFilters()">
+                🔄 Limpiar filtros
+            </button>
         </div>
 
         <div class="exercises-grid" id="exercisesList">
@@ -379,11 +494,71 @@
 
         let currentQR = null;
 
-        // Renderizar ejercicios
-        function renderExercises() {
-            const container = document.getElementById('exercisesList');
+        // Inicializar filtros
+        function initializeFilters() {
+            const levelFilter = document.getElementById('levelFilter');
+            const topicFilter = document.getElementById('topicFilter');
 
-            exercises.forEach(exercise => {
+            // Obtener niveles únicos
+            const levels = [...new Set(exercises.map(ex => ex.level))];
+            levels.forEach(level => {
+                const option = document.createElement('option');
+                option.value = level;
+                option.textContent = level;
+                levelFilter.appendChild(option);
+            });
+
+            // Obtener tópicos únicos
+            const topics = [...new Set(exercises.flatMap(ex => ex.topics))];
+            topics.forEach(topic => {
+                const option = document.createElement('option');
+                option.value = topic;
+                option.textContent = topic;
+                topicFilter.appendChild(option);
+            });
+        }
+
+        // Aplicar filtros
+        function applyFilters() {
+            const searchText = document.getElementById('searchBox').value.toLowerCase();
+            const levelFilter = document.getElementById('levelFilter').value;
+            const topicFilter = document.getElementById('topicFilter').value;
+
+            const filtered = exercises.filter(exercise => {
+                const matchesSearch = exercise.title.toLowerCase().includes(searchText);
+                const matchesLevel = !levelFilter || exercise.level === levelFilter;
+                const matchesTopic = !topicFilter || exercise.topics.includes(topicFilter);
+                return matchesSearch && matchesLevel && matchesTopic;
+            });
+
+            renderExercises(filtered);
+        }
+
+        // Limpiar filtros
+        function clearFilters() {
+            document.getElementById('searchBox').value = '';
+            document.getElementById('levelFilter').value = '';
+            document.getElementById('topicFilter').value = '';
+            renderExercises(exercises);
+        }
+
+        // Renderizar ejercicios
+        function renderExercises(exercisesToRender = exercises) {
+            const container = document.getElementById('exercisesList');
+            container.innerHTML = '';
+
+            if (exercisesToRender.length === 0) {
+                container.innerHTML = `
+                    <div class="no-results">
+                        <div class="no-results-icon">🔍</div>
+                        <p>No se encontraron ejercicios que coincidan con tu búsqueda.</p>
+                        <p style="font-size: 0.9em; margin-top: 10px;">Intenta con otros términos o limpia los filtros.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            exercisesToRender.forEach(exercise => {
                 const card = document.createElement('div');
                 card.className = 'exercise-card';
 
@@ -491,6 +666,7 @@
 
         // Inicializar
         document.addEventListener('DOMContentLoaded', () => {
+            initializeFilters();
             renderExercises();
         });
     </script>
