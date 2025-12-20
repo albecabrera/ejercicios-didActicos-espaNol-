@@ -1,4 +1,4 @@
-# 💻 Code Lab - Interaktive Programmier-Lernplattform
+****# 💻 Code Lab - Interaktive Programmier-Lernplattform
 
 Eine vollständige Lernplattform für Programmier-Übungen mit PHP-Backend, Code-Editor, Syntax-Highlighting, Lehrer-Dashboard und Schüler-Tracking.
 
