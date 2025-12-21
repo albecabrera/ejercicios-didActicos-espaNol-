@@ -1,15 +1,16 @@
 <?php
 /**
  * Configuración de base de datos SQLite
+ * Generado automáticamente por install.sh
  */
 
 // Ruta a la base de datos SQLite
 define('DB_PATH', __DIR__ . '/ejercicios.db');
 
-// Puerto del servidor (se actualizará durante instalación)
+// Puerto del servidor
 define('SERVER_PORT', '8000');
 
-// URL del backend (se actualizará durante instalación)
+// URL del backend
 define('BACKEND_URL', 'http://localhost:8000');
 
 // Zona horaria
@@ -66,7 +67,11 @@ function sendResponse($data, $statusCode = 200) {
 function validateRequired($data, $fields) {
     $missing = [];
     foreach ($fields as $field) {
-        if (!isset($data[$field]) || trim($data[$field]) === '') {
+        if (!isset($data[$field])) {
+            $missing[] = $field;
+        } elseif (is_string($data[$field]) && trim($data[$field]) === '') {
+            $missing[] = $field;
+        } elseif (is_array($data[$field]) && empty($data[$field])) {
             $missing[] = $field;
         }
     }
