@@ -10,6 +10,26 @@
 
 require_once 'config.php';
 
+// Habilitar reporte de errores para debugging (TEMPORAL)
+ini_set('display_errors', 0); // No mostrar en pantalla
+ini_set('log_errors', 1);
+error_reporting(E_ALL);
+
+// Capturar errores fatales
+register_shutdown_function(function() {
+    $error = error_get_last();
+    if ($error && in_array($error['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR])) {
+        http_response_code(500);
+        echo json_encode([
+            'success' => false,
+            'error' => 'Error fatal de PHP',
+            'message' => $error['message'],
+            'file' => $error['file'],
+            'line' => $error['line']
+        ], JSON_UNESCAPED_UNICODE);
+    }
+});
+
 // Obtener acción
 $action = $_GET['action'] ?? '';
 
@@ -200,8 +220,28 @@ function completeExercise($data) {
             'resultado_id' => $pdo->lastInsertId()
         ]);
 
-    } catch (Exception $e) {
+    } catch (PDOException $e) {
         if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+
+        // Log del error para debugging
+        error_log('Error PDO en completeExercise: ' . $e->getMessage());
+        error_log('Trace: ' . $e->getTraceAsString());
+
+        sendResponse([
+            'success' => false,
+            'error' => 'Error de base de datos al guardar el resultado',
+            'message' => $e->getMessage(),
+            'code' => $e->getCode(),
+            'details' => [
+                'estudiante' => $data['estudiante_nombre'] ?? 'N/A',
+                'ejercicio_id' => $data['ejercicio_id'] ?? 'N/A',
+                'sql_state' => $e->getCode()
+            ]
+        ], 500);
+    } catch (Exception $e) {
+        if (isset($pdo) && $pdo->inTransaction()) {
             $pdo->rollBack();
         }
 
@@ -213,6 +253,7 @@ function completeExercise($data) {
             'success' => false,
             'error' => 'Error al guardar el resultado',
             'message' => $e->getMessage(),
+            'type' => get_class($e),
             'details' => [
                 'estudiante' => $data['estudiante_nombre'] ?? 'N/A',
                 'ejercicio_id' => $data['ejercicio_id'] ?? 'N/A'
