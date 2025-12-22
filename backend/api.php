@@ -140,7 +140,18 @@ function completeExercise($data) {
         $stmt->execute([$estudiante['id'], $data['ejercicio_id']]);
 
         // 2. Insertar resultado del ejercicio completado
-        $resultado = is_array($data['resultado']) ? json_encode($data['resultado'], JSON_UNESCAPED_UNICODE) : $data['resultado'];
+        if (is_array($data['resultado'])) {
+            $resultado = json_encode($data['resultado'], JSON_UNESCAPED_UNICODE);
+            if ($resultado === false) {
+                throw new Exception('Error al codificar resultado como JSON: ' . json_last_error_msg());
+            }
+        } else {
+            $resultado = $data['resultado'];
+        }
+
+        // Preparar valores con conversión de tipos apropiada
+        $puntuacion = isset($data['puntuacion']) ? (int)$data['puntuacion'] : null;
+        $tiempoTranscurrido = isset($data['tiempo_transcurrido']) ? (int)$data['tiempo_transcurrido'] : null;
 
         $stmt = $pdo->prepare("
             INSERT INTO resultados (
@@ -159,9 +170,9 @@ function completeExercise($data) {
             $data['ejercicio_id'],
             $data['ejercicio_titulo'],
             $resultado,
-            $data['puntuacion'] ?? null,
+            $puntuacion,
             $data['nivel'] ?? null,
-            $data['tiempo_transcurrido'] ?? null
+            $tiempoTranscurrido
         ]);
 
         // 3. Marcar un ejercicio como completado (crear nuevo registro)
@@ -190,11 +201,22 @@ function completeExercise($data) {
         ]);
 
     } catch (Exception $e) {
-        $pdo->rollBack();
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+
+        // Log del error para debugging
+        error_log('Error en completeExercise: ' . $e->getMessage());
+        error_log('Trace: ' . $e->getTraceAsString());
+
         sendResponse([
             'success' => false,
             'error' => 'Error al guardar el resultado',
-            'message' => $e->getMessage()
+            'message' => $e->getMessage(),
+            'details' => [
+                'estudiante' => $data['estudiante_nombre'] ?? 'N/A',
+                'ejercicio_id' => $data['ejercicio_id'] ?? 'N/A'
+            ]
         ], 500);
     }
 }

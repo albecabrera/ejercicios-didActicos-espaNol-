@@ -67,11 +67,25 @@ function sendResponse($data, $statusCode = 200) {
 function validateRequired($data, $fields) {
     $missing = [];
     foreach ($fields as $field) {
-        if (!isset($data[$field])) {
+        // Verificar si el campo existe
+        if (!isset($data[$field]) || $data[$field] === null) {
             $missing[] = $field;
-        } elseif (is_string($data[$field]) && trim($data[$field]) === '') {
+            continue;
+        }
+
+        // Validar según el tipo
+        $value = $data[$field];
+
+        // String vacío
+        if (is_string($value) && trim($value) === '') {
             $missing[] = $field;
-        } elseif (is_array($data[$field]) && empty($data[$field])) {
+        }
+        // Array vacío
+        elseif (is_array($value) && empty($value)) {
+            $missing[] = $field;
+        }
+        // Booleano false (podría indicar un error)
+        elseif (is_bool($value) && $value === false) {
             $missing[] = $field;
         }
     }
