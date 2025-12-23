@@ -68,26 +68,45 @@ function validateRequired($data, $fields) {
     $missing = [];
     foreach ($fields as $field) {
         // Verificar si el campo existe
-        if (!isset($data[$field]) || $data[$field] === null) {
+        if (!isset($data[$field])) {
             $missing[] = $field;
             continue;
         }
 
-        // Validar según el tipo
         $value = $data[$field];
 
-        // String vacío
-        if (is_string($value) && trim($value) === '') {
+        // Verificar si es null
+        if ($value === null) {
             $missing[] = $field;
+            continue;
         }
-        // Array vacío
-        elseif (is_array($value) && empty($value)) {
-            $missing[] = $field;
+
+        // Verificar según el tipo - usando continue para evitar múltiples checks
+        if (is_array($value)) {
+            // Arrays: solo falla si está vacío
+            if (empty($value)) {
+                $missing[] = $field;
+            }
+            continue;
         }
-        // Booleano false (podría indicar un error)
-        elseif (is_bool($value) && $value === false) {
-            $missing[] = $field;
+
+        if (is_bool($value)) {
+            // Booleanos: solo falla si es false
+            if ($value === false) {
+                $missing[] = $field;
+            }
+            continue;
         }
+
+        if (is_string($value)) {
+            // Strings: falla si está vacío después de trim
+            if (trim($value) === '') {
+                $missing[] = $field;
+            }
+            continue;
+        }
+
+        // Números y otros tipos: aceptar cualquier valor que no sea null
     }
     return $missing;
 }
