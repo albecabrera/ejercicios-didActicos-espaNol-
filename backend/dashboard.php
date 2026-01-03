@@ -4,7 +4,8 @@
  * Panel de control para profesores y administradores
  */
 
-require_once 'config.php';
+require_once 'config.php'; 
+header('Content-Type: text/html; charset=UTF-8');
 
 // Desactivar CORS headers para páginas HTML
 header_remove('Access-Control-Allow-Origin');

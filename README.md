@@ -1,5 +1,15 @@
 # 📚 Ejercicios Didácticos de Español
 
+## 🌐 Acceso Directo a la Aplicación
+
+<h1 align="center">
+  <a href="https://albecabrera.github.io/ejercicios-didActicos-espaNol-/" style="color: #4a90e2; text-decoration: none;">
+    🚀 https://albecabrera.github.io/ejercicios-didActicos-espaNol-/
+  </a>
+</h1>
+
+---
+
 Sistema interactivo completo de ejercicios de español con tracking de estudiantes, estadísticas y dashboard administrativo.
 
 ## 🎯 Características
